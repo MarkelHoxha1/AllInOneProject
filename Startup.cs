@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AllInOne.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -17,35 +18,39 @@ namespace AllInOne
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+            services.AddRazorPages();
+
+
+            // The magic here is that the consumer of the mailservice shouldn't care 
+            // whether we have a real or a fake one, it is just going to have an 
+            // implementation of the interface that we can call.
+            services.AddTransient<INullMailService, NullMailService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            //if (env.IsDevelopment())
-            //{
-            //    app.UseDeveloperExceptionPage();
-            //}
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
+            }
 
-            //app.UseRouting();
-            //app.UseStaticFiles();
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapGet("/", async context =>
-            //    {
-            //        await context.Response.WriteAsync("Hello World!");
-            //    });
-            //});
 
             app.UseStaticFiles();
 
-            app.UseDeveloperExceptionPage();
-
             // Routing
-
             app.UseRouting();
+            
+
 
             app.UseEndpoints(cfg => {
+                cfg.MapRazorPages();
+
                 cfg.MapControllerRoute("Default",
                     "/{controller}/{action}/{id?}",
                     new { controller = "App", action = "Index" });
